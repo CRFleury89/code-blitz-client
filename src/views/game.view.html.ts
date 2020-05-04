@@ -14,7 +14,7 @@ export const html =
     </div>
     <div class='flex2'>
       <div class='flex3'>
-        <div class='code-editor'>
+        <div id='code-editor' class='code-editor'>
           <ul style='display: block' id='code' />
         </div>
         <div id='label'>Token Bank</div>
@@ -31,16 +31,12 @@ export const html =
           <div id='stats'><b>OPPONENT STATS</b><br><BR>CREDIT: $4.78<br>TOKENS PLACED: 12<BR>LINES OF CODE: 3<BR>AVG COST PER LINE: $0.72<br>SUBMIT ATTEMPTS: 1</div>
           </div>
         </div>
-        <div class='opponentCode'>
+        <div id='opponent-editor' class='code-editor'>
         </div>
 
-        <button id="myBtn"><div class='submitButton'><div class='submit'>SUBMIT CODE</div>
+        <button id="submit"><div class='submitButton'><div class='submit'>SUBMIT CODE</div>
         </div></button>
         <div id="myModal" class="modal">
-          <div class="modal-content">
-            <span class="close">&times;</span>
-            <p>YOU WIN!</p>
-          </div>
         </div>
 
         <div class='flex6'>

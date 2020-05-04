@@ -5,9 +5,7 @@ import {
   TokenOrMarkup,
   codeTokensFormatter
 } from './game.view.format.logic';
-import { Ellipse } from 'pixi.js';
-import { setMaxListeners } from 'cluster';
-import { setInterval } from 'timers';
+import { Exercise } from '../models/exercise.model';
 
 export const newlineMarkup = '<br/>';
 export const cursorPlaceholderMarkup = '|';
@@ -17,6 +15,9 @@ export class GameView
 {
   private app: HTMLElement;
   private dynamicStyles : HTMLStyleElement;
+  private divCodeEditor : HTMLDivElement;
+  private divOpponentEditor: HTMLDivElement;
+  private animateConveyor : AnimateConveyor;
 
   private ulTokens : {
     [location:string/*Location*/] : HTMLUListElement
@@ -28,12 +29,24 @@ export class GameView
 
   private formattedCodeTokens : TokenOrMarkup[];
 
+  private timer;
+
   constructor() {
     this.app = document.getElementById('root');
 
     this.app.innerHTML = html; 
+
     this.dynamicStyles = 
       document.getElementById('dynamic-styles') as HTMLStyleElement;
+    this.divCodeEditor = 
+      document.getElementById('code-editor') as HTMLDivElement;
+    this.divOpponentEditor = 
+      document.getElementById('opponent-editor') as HTMLDivElement;
+
+    console.log(this.dynamicStyles.innerText)
+    console.log(this.divCodeEditor.innerHTML)
+    console.log(this.divOpponentEditor.innerHTML = 'CONNECTING . . . ')
+
 
     locations.forEach((location)=>{
       this.ulTokens[location] 
@@ -42,8 +55,37 @@ export class GameView
         ) as HTMLUListElement;
     })
 
-    // Initialize timer and popup code
-    this.initializePopup(this.initializeTimer());
+    // Animate conveyor
+    this.animateConveyor = new AnimateConveyor(this.ulTokens['conveyor'],10);
+//    this.animateConveyor.setDelayIn10thSeconds(0); 
+    this.timer = this.initializeTimer();
+    this.initializePopup();
+  }
+
+  public bindSubmitCode(handler: Function) {
+    var btn = document.getElementById("submit")
+    btn.onclick = function() {
+      const code = document.getElementById('code').textContent;
+      const title = "Print Numbers";
+      //Hard coded for now. Will need to be changed later with more game options
+      handler(title, code);
+    };
+  }
+
+  public submitResult(result: boolean) {
+    var modal = document.getElementById("myModal");
+
+    if(result)
+    {
+      modal.innerHTML = '<div class="modal-content"><span class="close">&times;</span><p>YOU WIN!</p></div>';
+      modal.style.display = "block";
+      clearInterval(this.timer);
+    }
+    else
+    {
+      modal.innerHTML = '<div class="modal-content"><span class="close">&times;</span><p>Incorrect Answer, Keep Trying!</p></div>';
+      modal.style.display = "block";
+    }
   }
 
   // Primarily calls service handler() to move tokens between
@@ -92,7 +134,18 @@ export class GameView
   }
 
   //
-  // Display() gets called whenver our model changes...
+  // One-time callback from service to inject our exercise model 
+  // data onto our game play page!
+  //
+  public initialize(exercise : Exercise)
+  {
+    const divPrompt = document.getElementById('prompt');
+    divPrompt.innerText = exercise.prompt;
+    // console.log(`game.view.ts: initialize(): exercise = ${JSON.stringify(exercise)}`);
+  }
+
+  //
+  // Display() gets called whenever our model changes...
   //
   public display(location : Location, tokens : GameToken[]) 
   {
@@ -208,21 +261,15 @@ export class GameView
     el.appendChild(li);
   }
 
-  private initializePopup(intervalID) 
+  private initializePopup() 
   {
     var modal = document.getElementById("myModal");
 
     // Get the button that opens the modal
-    var btn = document.getElementById("myBtn");
+    var btn = document.getElementById("submit");
 
     // Get the <span> element that closes the modal
     var span : HTMLSpanElement = document.getElementsByClassName("close") as any;
-
-    // When the user clicks the button, open the modal 
-    btn.onclick = function() {
-      modal.style.display = "block";
-      clearInterval(intervalID);
-    }
 
     // When the user clicks on <span> (x), close the modal
     span.onclick = function() {
@@ -234,7 +281,7 @@ export class GameView
       if (event.target == modal) {
         modal.style.display = "none";
       }
-    } 
+    }
   }
 
   private initializeTimer()
@@ -249,14 +296,14 @@ export class GameView
         let displayMinutes : string;
         
         //Stopwatch function (logic to determine when to increment next value, etc.)
-        function stopWatch(){
+        const stopWatch = () =>
+        {
             seconds++;
             //Logic to determine when to increment next value
             if(seconds / 60 === 1){
                 seconds = 0;
                  minutes++;
             }
-
             // If seconds/minutes/hours are only one digit, 
             // add a leading 0 to the value
             if(seconds < 10)
@@ -272,8 +319,64 @@ export class GameView
             //Display updated time values to user
             document.getElementById("timer").innerHTML 
               = displayMinutes + ":" + displaySeconds;
+
+          // HACK to simulate opponent code window updates
+          this.divOpponentEditor.innerHTML = this.divCodeEditor.innerHTML;
+
         }
         return window.setInterval(stopWatch, 1000);    
   }
-
 }
+
+class AnimateConveyor
+{
+  // TODO:
+  // This could be animate for smooth motion,
+  // there are many tutorials, e.g. 
+  //   https://www.sarasoueidan.com/blog/creative-list-effects/
+  //
+
+  private conveyorTimer = null;
+
+  private tick = 0; // 10 = 1 second
+
+  constructor(
+    private ulConveyor:HTMLUListElement, 
+    private ticksPerRotation?:number
+  ) {
+//    console.log(this.ulConveyor);
+//    console.log(this.ticksPerRotation);
+    this.conveyorTimer = setInterval(
+      this.rotateTokens.bind(this), 100);
+  }
+
+  public setDelayIn10thSeconds(ticksPerRotation)
+  {
+    this.ticksPerRotation = ticksPerRotation;
+  }
+
+  private rotateTokens()
+  {     
+//    console.log(this.tick);
+//    console.log(this.ticksPerRotation);
+
+    if ( this.ulConveyor?.children?.length > 1
+      && this.ticksPerRotation > 0 // use 0 to pause!
+      && (this.tick++ % this.ticksPerRotation) === 0 ) 
+    {
+      const LI = this.ulConveyor.children[this.ulConveyor.children.length-1];
+      const liWidth = LI.clientWidth;
+      
+      this.ulConveyor.removeChild(LI);
+      /*
+      // concept for a smooth transition of movement in the conveyor:
+      // in CSS we need a selector for the 1st item in the conveyor, e.g.
+      // ul.conveyor li:first -tran: {
+        width: 0px -> 85px;
+      }
+      */
+      this.ulConveyor.insertBefore(LI,this.ulConveyor.children[0]);
+    } 
+  }
+}
+

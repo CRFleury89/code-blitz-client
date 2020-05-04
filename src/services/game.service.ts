@@ -7,6 +7,7 @@ import { TokenID, ExerciseToken, Exercise } from '../models/exercise.model';
 type Direction = 1 | -1;
 
 export type HandleMoveToken = typeof GameService.prototype.moveToken;
+export type HandleSubmitCode = typeof GameService.prototype.checkCode;
 
 type OnTokenArrayChanged = (x : GameToken[]) => (void);
 
@@ -17,9 +18,12 @@ type OnTokenArrayChanged = (x : GameToken[]) => (void);
  */
 export class GameService {
   private tokens : GameTokens = {};
+  private exercise : Exercise;
   private tokenLocationArray : {
     [location:string/*Location*/] : TokenID[]
   } = {};
+
+  private onExerciseLoaded : (exercise: Exercise) => (void);
 
   private onTokenLocationChanged : {
     [location:string/*Location*/] : OnTokenArrayChanged
@@ -31,13 +35,27 @@ export class GameService {
       this.tokenLocationArray[location] = []; // initialize arrays
     });
     // Read exercise data from server and load it
-    Fetch('/token')
+    Fetch('/exercise') 
       .then(res => res && res.json())
+      // quick adjustment to fetch tokens from first exercise...
+      .then(res => res) 
       .then( this.loadExercise.bind(this) );
   }
 
-  private loadExercise(exerciseTokens:Array<ExerciseToken>)
+  private loadExercise(exercises:Exercise[])
   {
+    //
+    // TODO:
+    // Introduce exercise-picking algorithm here (could be random to start)...
+    // Right now, I'm just hard coding to the first exercise in Mongo collection!
+    //
+    this.exercise = exercises[0];
+    const exerciseTokens:Array<ExerciseToken> = this.exercise.tokens;
+
+    // One-time load/refresh of view now that we've got the 
+    // selected exercise data...
+    this.onExerciseLoaded(this.exercise);
+
     // Load all game tokens to
     // the central game token storage object
     // with a location setting of conveyor...
@@ -52,6 +70,12 @@ export class GameService {
     );
     this.refreshLocationArrays(null);
     this.commit(locations);
+  }
+
+  public bindExerciseLoaded(
+    callback: (exercise: Exercise) => (void)
+  ) {
+    this.onExerciseLoaded = callback;
   }
 
   public bindTokenLocationChanged(
@@ -129,5 +153,19 @@ export class GameService {
         this.tokenLocationArray[location].map(tokenID=>this.tokens[tokenID])
       );
     });
+  }
+
+  public checkCode(title: string, code: string)
+  { 
+      /*Code used for testing, left in temporarily if you needed something to verify with as well
+        var Prologue = "var start = 9; var end = 15; var output = [];";
+        var Epilogue = "console.log(output);";
+        var middle = "while (start <= end) {output.push(start); start++;}";
+        code = Prologue + middle + Epilogue;*/
+    return Fetch('/exercise', {
+      method: 'POST',
+      body: JSON.stringify({_title: title, _code: code})
+  })
+  .then(res => res && res.json());
   }
 }
