@@ -1,7 +1,8 @@
 interface GameplayStats {
     session_id:string,
     challenge_id:string,
-    tokens_placed:number
+    tokens_placed:number,
+    winner:string
 }
 
 export class Singleton

@@ -64,6 +64,9 @@ export class GameController {
       let budget = this.gameService.changeBudget(tokenID);
       this.gameView.setBudget(budget);
       this.gameService.moveToken(tokenID,direction,codeCursorTokenIndex);
+
+      //debug -- Make sure to disable!!!
+      this.handleSubmitCode();
     }
     else
     {
@@ -74,7 +77,22 @@ export class GameController {
   private handleSubmitCode = () => {
     this.gameService.checkCode()
     .then(res => {
-      this.gameView.submitResult(res['result']);
+      if(res['result'])
+      {
+        this.declareWinner();
+      }
+      else
+      {
+        this.gameView.submitResult('');
+      }
     });
+  }
+
+  private declareWinner()
+  {
+    this.gameService.checkWinner()
+    .then(res => {
+      this.gameView.submitResult(res['winner']);
+    })
   }
 }

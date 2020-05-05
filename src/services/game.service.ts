@@ -52,7 +52,7 @@ export class GameService {
     // Introduce exercise-picking algorithm here (could be random to start)...
     // Right now, I'm just hard coding to the first exercise in Mongo collection!
     //
-    this.exercise = exercises[0];
+    this.exercise = exercises[1];
     const exerciseTokens:Array<ExerciseToken> = this.exercise.tokens;
     
     this.myStats.budget = this.exercise.availableBudget;
@@ -226,5 +226,13 @@ export class GameService {
       body: JSON.stringify({_title: this.exercise.title, _code: code})
   })
   .then(res => res && res.json());
+  }
+
+  public checkWinner()
+  {
+    return Fetch('/game/' + this.myStats.session_id + '.' + this.myStats.challenge_id, {
+      method: 'GET'
+    })
+    .then(res => res && res.json());
   }
 }

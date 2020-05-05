@@ -100,19 +100,27 @@ export class GameView
     };
   }
 
-  public submitResult(result: boolean) {
+  public submitResult(result: string) {
     var modal = document.getElementById("myModal");
 
-    if(result)
+    switch (result)
     {
-      modal.innerHTML = '<div class="modal-content"><span class="close">&times;</span><p>YOU WIN!</p></div>';
-      modal.style.display = "block";
-      clearInterval(this.timer);
-    }
-    else
-    {
-      modal.innerHTML = '<div class="modal-content"><span class="close">&times;</span><p>Incorrect Answer, Keep Trying!</p></div>';
-      modal.style.display = "block";
+      case 'won':
+        modal.innerHTML = '<div class="modal-content"><span class="close">&times;</span><p>YOU WIN!</p></div>';
+        modal.style.display = "block";
+        clearInterval(this.timer);
+        break;
+      case 'lost':
+        modal.innerHTML = '<div class="modal-content"><span class="close">&times;'
+                        + '</span><p>You have finished, but your opponent already won!</p></div>';
+        modal.style.display = "block";
+        clearInterval(this.timer);
+        break;
+      default:
+        modal.innerHTML = '<div class="modal-content"><span class="close">&times;'
+                        + '</span><p>Incorrect Answer, Keep Trying!</p></div>';
+        modal.style.display = "block";
+        break;
     }
   }
 

@@ -28,7 +28,7 @@ export class ExerciseInfoController
         };
 
         try { eval(req.body['_code']); }
-        catch{ res.json({result: false}); return; }
+        catch{res.json({result: false}); return; }
         
 
         ExerciseInfo.findOne({'title':req.body["_title"]}, (err, exercise) => {

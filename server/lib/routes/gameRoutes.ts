@@ -9,5 +9,8 @@ export class GameRoutes {
         app.route('/game')
         // POST endpoint
         .post(this.gameController.updateGameStatus);
+
+        app.route('/game/:userId.:challengeId')
+        .get(this.gameController.updateWinner);
     }
 }
