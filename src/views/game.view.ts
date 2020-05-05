@@ -96,10 +96,7 @@ export class GameView
   public bindSubmitCode(handler: Function) {
     var btn = document.getElementById("submit")
     btn.onclick = function() {
-      const code = document.getElementById('code').textContent;
-      const title = "Print Numbers";
-      //Hard coded for now. Will need to be changed later with more game options
-      handler(title, code);
+      handler();
     };
   }
 
@@ -170,6 +167,13 @@ export class GameView
 
     lbl.style.background = 'green';
     lbl.innerHTML = '<div class="credit"><br><br>CREDIT<br>$ ' + budget.toFixed(2) + '</div>';
+  }
+
+  public overBudget()
+  {
+    var modal = document.getElementById("myModal");
+    modal.innerHTML = '<div class="modal-content"><span class="close">&times;</span><p>Not enough credit!</p></div>';
+    modal.style.display = "block";
   }
 
   //

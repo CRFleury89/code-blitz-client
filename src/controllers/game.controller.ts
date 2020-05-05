@@ -59,13 +59,20 @@ export class GameController {
 
   private handleMoveToken : HandleMoveToken 
       = (tokenID,direction,codeCursorTokenIndex:number) => {
-    let budget = this.gameService.changeBudget(tokenID);
-    this.gameView.setBudget(budget);
-    this.gameService.moveToken(tokenID,direction,codeCursorTokenIndex);
+    if (this.gameService.checkBudget(tokenID))
+    {
+      let budget = this.gameService.changeBudget(tokenID);
+      this.gameView.setBudget(budget);
+      this.gameService.moveToken(tokenID,direction,codeCursorTokenIndex);
+    }
+    else
+    {
+      this.gameView.overBudget();
+    }
   }
 
-  private handleSubmitCode = (title: string, code: string) => {
-    this.gameService.checkCode(title, code.replace(/\|/g,''))
+  private handleSubmitCode = () => {
+    this.gameService.checkCode()
     .then(res => {
       this.gameView.submitResult(res['result']);
     });

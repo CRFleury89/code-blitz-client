@@ -157,10 +157,21 @@ export class GameService {
     return;
   }
 
+  checkBudget(tokenID : TokenID)
+  {
+    var moveToken = true;
+    const location = this.tokens[tokenID].location;
+    if(location == 'conveyor' && this.myStats.budget < this.tokens[tokenID].cost)
+    {
+      moveToken = false;
+    }
+    return moveToken;
+  }
+
   public changeBudget(tokenID : TokenID)
   {
     const location = this.tokens[tokenID].location;
-    if(location == 'conveyor' && this.myStats.budget > 0)
+    if(location == 'conveyor')
     {
       this.myStats.budget -= this.tokens[tokenID].cost;
     }
@@ -203,25 +214,16 @@ export class GameService {
     });      
   }
 
-  public checkCode(title: string, code: string)
+  public checkCode()
   { 
-      /*Code used for testing, left in temporarily if you needed something to verify with as well
-        var Prologue = "var start = 9; var end = 15; var output = [];";
-        var Epilogue = "console.log(output);";
-        var middle = "while (start <= end) {output.push(start); start++;}";
-        code = Prologue + middle + Epilogue;*/
+    let code = this.tokenLocationArray['code']
+      .reduce( (prev, tokenID) => prev += this.tokens[tokenID].token +' ','');
+    
+    code = this.exercise.solutions[0].prologue + code + this.exercise.solutions[0].epilogue;
 
-    //
-    // *** FYI: No need to send 'code' parameter from view
-    // *** as our model data, managed by this service, is the 
-    // *** "source of truth" for the current set of tokens
-    // *** in the code 'location.'
-    console.log(this.tokenLocationArray['code']
-      .reduce( (prev, tokenID) => prev += this.tokens[tokenID].token +' ',''));
-        
     return Fetch('/exercise', { 
       method: 'POST',
-      body: JSON.stringify({_title: title, _code: code})
+      body: JSON.stringify({_title: this.exercise.title, _code: code})
   })
   .then(res => res && res.json());
   }
